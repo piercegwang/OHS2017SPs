@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Dec  6 08:10:34 2017
+
+@author: piercewang
+
+Sig Fig Calculator v0.3
+v0.1
+    working findSigFigs function
+    finished at Wed Dec  6 011:34:20 2017
+v0.2
+    working equation return
+    enter equation with spaces seperating numbers from operators and then enter
+v0.3
+    working equationr return without spaces
+    added split_operators function
+    tested regular expressions, decided to go with split_operators instead
+"""
+
+def findSigFigs(num): #take string num as input
+    sigfigs = 0
+    numwithxp = num.lower() #make the 'e' useable
+    singlenum = int
+    exp = numwithxp.find('e')
+    hasexp = False
+    if exp != -1:
+        hasexp = True
+        expnum = numwithxp[exp+1:]
+        print(expnum)
+        singlenum = str(numwithxp[:exp])
+    else:
+        singlenum = numwithxp
+    for i in range(0,len(singlenum)): #all nonzero numbers are significant
+        if singlenum[i] != '0' and singlenum[i] != '.':
+            sigfigs += 1
+    havenonzero = False
+    firstnonzero = -1
+    havedecimal = False
+    decimal = -1
+    for i in range(0,len(singlenum)): #Find index of first int and decimal
+        if singlenum[i] != '0' and havenonzero == False:
+            firstnonzero = i
+            havenonzero = True
+        if singlenum[i] == '.' and havedecimal == False:
+            decimal = i
+            havedecimal = True
+    if decimal != -1 and firstnonzero != -1:
+        for i in range(0,len(singlenum)): # counts zeroes before decimal point
+            if singlenum[i] == '0' and i in range(firstnonzero,decimal+1):
+                sigfigs += 1
+        for i in range(0,len(singlenum)): #Find trailing zeroes
+            if singlenum[i] == '0' and i in range(decimal,len(singlenum)+1):
+                sigfigs += 1
+    elif decimal == -1 and firstnonzero != -1:
+        lastnonzero = len(singlenum)-1
+        foundlastnum = False
+        for i in range(0, len(singlenum)):
+            if singlenum[lastnonzero] != '0':
+                foundlastnum = True
+            else:
+                lastnonzero -= 1
+        for i in range(firstnonzero,lastnonzero+1):
+            if singlenum[i] == '0':
+                sigfigs += 1
+    return sigfigs
+#print(findSigFigs(str(input())))
+
+def split_operators(s):
+    numbers = "0123456789."
+    l = []
+    last_number = ''
+    for c in s:
+        if c in numbers:
+            last_number += c
+        else:
+            if last_number:
+                l.append(last_number)
+                last_number = ""
+            if c:
+                l.append(c)
+    if last_number:
+        l.append(last_number)
+    return l
+
+def equationReturn():
+    equation = str(input())
+    solveequation = equation.replace("^", "**") # make equation executable by python
+    print("Calculator Answer: " + str(eval(solveequation)))
+    finalEquation = []
+    i = 0
+    finalEquation = split_operators(equation)
+    print(finalEquation)
+    operations = ["^","*","/","+","-","(",")"]
+    sigfigslist = []
+    for i in finalEquation:
+        if not i in operations:
+            sigfigslist.append(findSigFigs(i))
+    leastsigfigs = min(sigfigslist)
+    print("Sig figs in final answer: " + str(leastsigfigs))
+
+equationReturn()
